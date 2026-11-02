@@ -46,7 +46,9 @@ Where things live:
 - `apps/extension`: the extension itself (manifest, background script, new tab page)
 - `modules/dial`: the dial, search and settings you see on the new tab (Svelte 5)
 - `packages/core`, `packages/module-sdk`: shared code, MIT-licensed
-- `site`: the website; `feed`: the daily photo feed
+- `feed`: the daily photo feed
+
+The website is in its own repository, [openmarks/openmarks.github.io](https://github.com/openmarks/openmarks.github.io).
 
 ## Before you open a pull request
 

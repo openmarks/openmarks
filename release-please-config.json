@@ -6,7 +6,7 @@
     ".": {
       "release-type": "node",
       "package-name": "openmarks",
-      "exclude-paths": ["site", "feed", ".github", ".software-factory"],
+      "exclude-paths": ["feed", ".github", ".software-factory"],
       "extra-files": [{ "type": "json", "path": "apps/extension/package.json", "jsonpath": "$.version" }]
     }
   }
