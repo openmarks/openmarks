@@ -1,10 +1,21 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
+import { relative } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'wxt';
 import pkg from './package.json' with { type: 'json' };
+
+const repo = fileURLToPath(new URL('../..', import.meta.url));
 
 // The newtab entrypoint makes WXT write `chrome_url_overrides.newtab` into the manifest.
 export default defineConfig({
   modules: ['@wxt-dev/module-svelte'],
+  // Svelte names each component's CSS classes from its file's path; from the path inside the repo (not on this disk),
+  // so the same sources build the same files anywhere, as the store's reviewers check.
+  svelte: {
+    vite: {
+      compilerOptions: { cssHash: ({ hash, css, filename }) => `svelte-${hash(filename ? relative(repo, filename).replaceAll('\\', '/') : css)}` },
+    },
+  },
   manifestVersion: 3,
   manifest: ({ browser }) => ({
     name: 'Openmarks',
