@@ -32,15 +32,19 @@ export type Prefs = {
   dialFolder: string | null; // null = the default "Openmarks" folder
 };
 
+const KEY = 'proto-prefs-v7';
+// A new install starts on today's Unsplash photo. Anyone who has used Openmarks before keeps no wallpaper, even if they
+// never saved a setting: every new tab leaves its first paint behind for the next (proto-boot, wallpaper.ts).
+const fresh = localStorage.getItem(KEY) === null && localStorage.getItem('proto-boot') === null;
+
 const defaults: Prefs = {
   theme: 'auto', themeId: 'openmarks', glass: true, vim: false, tileSize: 'M', pictures: 'cover', titles: 'show', maxColumns: 0, searchStyle: 'bar', engine: 'google', suggest: true, engines: [],
-  addButton: true, clock: false, wallpaper: { kind: 'none' }, dialFolder: null,
+  addButton: true, clock: false, wallpaper: fresh ? { kind: 'daily', provider: 'picsum' } : { kind: 'none' }, dialFolder: null,
 };
 
 /** Fixed (no setting): spacing, corners, title size. Target tile widths; actual width stretches to fill each row. */
 export const fixed = { gap: 20, radius: 10, fontSize: 14, cap: 10, target: { icon: 92, S: 148, M: 188, L: 236, XL: 300 } as Record<TileSize, number> };
 
-const KEY = 'proto-prefs-v7';
 const saved = (() => {
   try {
     return JSON.parse(localStorage.getItem(KEY) ?? '{}') as Partial<Prefs> & { search?: boolean };
@@ -115,6 +119,9 @@ export function savePrefs() {
   // The right-click "Add to Openmarks" (background) adds to the same folder the dial shows.
   (globalThis as { chrome?: { storage?: { local?: { set(v: object): unknown } } } }).chrome?.storage?.local?.set({ 'proto-dialFolder': prefs.dialFolder });
 }
+
+// A new install's settings are kept from the start, so its wallpaper stays the same on the next tab.
+if (fresh) savePrefs();
 
 // Keep the background's copy of the dial folder current from the start.
 (globalThis as { chrome?: { storage?: { local?: { set(v: object): unknown } } } }).chrome?.storage?.local?.set({ 'proto-dialFolder': prefs.dialFolder });
