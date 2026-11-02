@@ -37,6 +37,12 @@ build (`.output/chrome-mv3`).
 
 From the repo root, `pnpm test`, `pnpm lint` and `pnpm typecheck` run the checks across all packages.
 
+## Contributing
+
+Openmarks is a community project, worked on in spare time. Bug reports and fixes are welcome: start with
+[CONTRIBUTING.md](CONTRIBUTING.md). Questions and ideas go to
+[Discussions](https://github.com/rishabh0111/openmarks/discussions).
+
 ## License
 
 GPL-3.0-or-later (see `LICENSE`). `packages/*` are MIT.
