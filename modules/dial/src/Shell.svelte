@@ -986,19 +986,19 @@
       </nav>
     {/if}
 
-    {#if isFirstRun}
-      <section class="first">
-        <h1>Your dial is empty</h1>
-        <div class="choices">
-          <button class="choice" onclick={() => (pickFolder = true)}><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d={icons.open} /></svg><strong>Use a folder</strong></button>
-          <button class="choice" onclick={addOpenTabs}><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d={icons.tabs} /></svg><strong>Add open tabs</strong></button>
-          <button class="choice" onclick={() => (edit = { mode: 'add' })}><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d={icons.plus} /></svg><strong>Add a site</strong></button>
-        </div>
-        <p>Tip: paste any link on this page to add it.</p>
-      </section>
-    {:else if view.items.length === 0}
-      <p class="none">This folder is empty. Paste a link here or add one.</p>
-      {#if prefs.addButton}<button class="add solo" aria-label="Add site" onclick={() => (edit = { mode: 'add' })}><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d={icons.plus} /></svg></button>{/if}
+    {#if view.items.length === 0}
+      <!-- An empty dial or folder looks like the dial: a row of empty places for tiles, the first one for adding a site
+           (as the welcome draws it), and one line on pasting. Shown whatever the Add button setting, as it's the way in. -->
+      <main class="grid" aria-label={view.title}>
+        <button class="addslot" class:icon={iconMode} aria-label="Add a site" onclick={() => (edit = { mode: 'add' })}>
+          <span class="plus"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d={icons.plus} /></svg></span>
+          {#if !iconMode}<span aria-hidden="true">Add a site</span>{/if}
+        </button>
+        {#each { length: Math.max(0, Math.min(cols, 6) - 1) } as _, i (i)}
+          <span class="ghost" class:icon={iconMode} style:opacity={1 - i * 0.16} aria-hidden="true"></span>
+        {/each}
+      </main>
+      <p class="none">{isFirstRun ? 'Add your first site' : 'Nothing in this folder yet. Add a site'}, or paste a link anywhere on this page.</p>
     {:else}
       <main class="grid" bind:this={gridEl} aria-label={view.title}>
         {#each view.items as item (item.id)}
@@ -1197,10 +1197,6 @@
   /* icon view: stick to the square, not the whole cell */
   .addpill.icon { align-self: start; margin-top: 12px; height: 40px; margin-left: calc(-1 * var(--gap) - (var(--tile) - 64px) / 2); }
   .addpill.icon.below { margin: calc(-1 * var(--row-gap) + 4px) 0 0; height: 22px; border-top: var(--border); border-radius: var(--r); }
-  .add { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; border: 1px dashed color-mix(in oklab, var(--muted) 55%, transparent);
-    background: var(--pane); backdrop-filter: var(--backdrop); color: var(--muted); cursor: pointer; padding: 0; }
-  .add:hover { color: var(--text); border-style: solid; background: var(--surface); }
-  .add.solo { margin: 12px auto 0; }
   .ibtn { transition: background var(--quick) var(--ease), color var(--quick) var(--ease), transform 0.08s var(--ease); }
   .ibtn:hover { color: var(--text); background: var(--tint); }
   .ibtn:active { background: var(--tint-press); transform: scale(0.94); }
@@ -1230,18 +1226,22 @@
   .crumbs button:hover { color: var(--text); background: var(--tint); }
   .crumbs button:active { background: var(--tint-press); }
   .grid { display: grid; grid-template-columns: repeat(var(--cols), var(--tile)); gap: var(--row-gap) var(--gap); margin-top: 20px; }
-  .none { margin: 48px auto 0; max-width: 420px; text-align: center; color: var(--muted); line-height: 1.5; }
-  .on-photo .none, .on-photo .first { background: var(--pane); backdrop-filter: var(--backdrop); border-radius: 12px; padding: 12px 16px; }
-  .first { margin: 12vh auto 0; max-width: 520px; text-align: center; }
-  .first h1 { font-size: 18px; font-weight: 600; margin: 0 0 18px; }
-  .first p { margin: 16px 0 0; color: var(--muted); font-size: 13px; }
-  .choices { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-  .choice { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 18px 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); color: var(--text); font: inherit; font-size: 13px; cursor: pointer; box-shadow: var(--shadow); }
-  .choice svg { color: var(--muted); }
-  .choice { transition: border-color var(--quick) var(--ease), transform var(--quick) var(--ease), box-shadow var(--quick) var(--ease); }
-  .choice:hover { border-color: var(--choice-hover); transform: translateY(-2px); box-shadow: var(--hover-shadow); }
-  .choice:hover svg { color: var(--text); }
-  .choice:active { transform: scale(0.98); }
+  /* An empty dial or folder: empty places in the grid, the first one for adding a site, then a line on pasting. */
+  .addslot, .ghost { box-sizing: border-box; aspect-ratio: 16 / 12; border-radius: var(--radius); }
+  .addslot { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 0;
+    border: 2px dashed color-mix(in srgb, var(--text) 30%, transparent); background: color-mix(in srgb, var(--surface) 40%, transparent); backdrop-filter: var(--backdrop);
+    color: var(--text); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer;
+    transition: border-color var(--quick) var(--ease), background var(--quick) var(--ease), transform 0.16s var(--ease); }
+  .addslot .plus { width: 40px; height: 40px; display: grid; place-items: center; border-radius: 50%; background: var(--ring); color: var(--on-ring);
+    transition: transform 0.16s var(--ease); }
+  .addslot:hover { border-color: var(--ring); background: var(--pane); transform: translateY(var(--hover-lift)); }
+  .addslot:hover .plus { transform: scale(1.08); }
+  .addslot:active { transform: scale(0.985); }
+  .addslot:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+  .ghost { border: 2px dashed color-mix(in srgb, var(--text) 13%, transparent); }
+  .addslot.icon, .ghost.icon { justify-self: center; width: 64px; height: 64px; aspect-ratio: auto; border-radius: calc(var(--radius) * 1.4); }
+  .none { width: fit-content; margin: 18px 0 0; color: var(--muted); line-height: 1.5; }
+  .on-photo .none { background: var(--pane); backdrop-filter: var(--backdrop); border-radius: 12px; padding: 8px 14px; }
   .toasts { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); display: flex; flex-direction: column; gap: 8px; align-items: center; z-index: 40; }
   .toasts.lift { bottom: 84px; }
   .selbar { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); z-index: 41; display: flex; align-items: center; gap: 2px; max-width: calc(100vw - 32px); box-sizing: border-box;
