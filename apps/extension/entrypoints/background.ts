@@ -253,7 +253,13 @@ export default defineBackground(() => {
   });
 
   // 1.1.0 kept a "focus the dial on new tabs" switch here; that feature is gone.
-  browser.runtime.onInstalled.addListener(() => { rebuildMenus(0); void browser.storage.local.remove('proto-focusPage'); });
+  browser.runtime.onInstalled.addListener(({ reason }) => {
+    rebuildMenus(0);
+    void browser.storage.local.remove('proto-focusPage');
+    // A first install opens the dial, with the welcome over it (modules/dial/src/Welcome.svelte) to set it up.
+    if (reason === 'install')
+      void browser.storage.local.set({ 'proto-welcome': true }).then(() => browser.tabs.create({ url: browser.runtime.getURL('/newtab.html') }));
+  });
   browser.runtime.onStartup.addListener(() => rebuildMenus(0));
   for (const e of [browser.bookmarks.onCreated, browser.bookmarks.onRemoved, browser.bookmarks.onChanged, browser.bookmarks.onMoved]) e.addListener(() => rebuildMenus());
   browser.storage.onChanged.addListener((c) => { if ('proto-dialFolder' in c) rebuildMenus(); });

@@ -24,6 +24,7 @@ type Api = {
     onAdded: Ev; onRemoved: Ev;
   };
   runtime: { getURL(p: string): string };
+  storage: { local: { get(k: string): Promise<Record<string, unknown>>; remove(k: string): Promise<void> } };
 };
 
 const g = globalThis as unknown as { browser?: Api; chrome?: Api };
@@ -66,6 +67,13 @@ export const perm = {
     api.permissions.onAdded.addListener(f);
     api.permissions.onRemoved.addListener(f);
   },
+};
+
+/** The welcome (Welcome.svelte) is due: a first install sets this (background.ts), closing the welcome clears it. */
+const WELCOME = 'proto-welcome';
+export const welcomeDue = {
+  get: () => api.storage.local.get(WELCOME).then((v) => v[WELCOME] === true).catch(() => false),
+  clear: () => void api.storage.local.remove(WELCOME).catch(() => {}),
 };
 
 /** The browser's own favicon (Chromium `favicon` permission); no network, no third party. Firefox has none. */

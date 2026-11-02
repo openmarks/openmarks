@@ -10,13 +10,14 @@
   import { prefs, epoch, fixed, savePrefs } from './prefs.svelte';
   import { copyPicture, pictures } from './pictures.svelte';
   import { wantShots, requestShots } from './shots.svelte';
-  import { bm, perm, sameSite, toUrl } from './bm';
+  import { bm, perm, sameSite, toUrl, welcomeDue } from './bm';
   import { previewFor, forgetPreview } from './preview';
   import { saveWallpaper, loadWallpaper, dailyWallpaper, peekDaily, readSnap, makeSnap, keepSnap, dropSnap, saveBoot, type Daily } from './wallpaper';
   import { icons } from './icons';
   import { themeById, themeVars, isDark, prominent, accentFrom, onAccent } from './themes';
   import { ownThemes } from './ownthemes.svelte';
   import SettingsSheet from './SettingsSheet.svelte';
+  import Welcome from './Welcome.svelte';
   import KeysHelp from './KeysHelp.svelte';
   import { watchGamepads, type PadAction } from './gamepad';
   import Card from './Card.svelte';
@@ -39,6 +40,20 @@
   let selected = $state(localStorage.getItem('proto-tab') ?? 'home');
   let crumbIds = $state<string[]>([]);
   let sheet = $state(false);
+  // The welcome (Welcome.svelte): over the dial after a first install, and from Settings › About.
+  let welcome = $state(false);
+  welcomeDue.get().then((due) => (welcome ||= due));
+  function closeWelcome() {
+    welcome = false;
+    welcomeDue.clear();
+  }
+  /** Shows another bookmarks folder as the dial (null: the default Openmarks folder). */
+  function useFolder(id: string | null) {
+    prefs.dialFolder = id;
+    savePrefs();
+    selectTab('home');
+    reload();
+  }
 
   const tab = $derived(tabs.find((t) => t.id === selected) ?? tabs[0]!);
   function findFolder(items: DialItem[], id: string): Folder | undefined {
@@ -1057,7 +1072,8 @@
   {/if}
   {#if confirm}<ConfirmDialog {...confirm} onclose={() => (confirm = null)} />{/if}
   {#if naming}<NameDialog {...naming} onclose={() => (naming = null)} />{/if}
-  {#if pickFolder}<FolderPicker current={prefs.dialFolder} onpick={(id) => { prefs.dialFolder = id; savePrefs(); selectTab('home'); reload(); }} onclose={() => (pickFolder = false)} />{/if}
+  {#if pickFolder}<FolderPicker current={prefs.dialFolder} onpick={useFolder} onclose={() => (pickFolder = false)} />{/if}
+  {#if welcome}<Welcome onfolder={useFolder} onclose={closeWelcome} />{/if}
   <!-- Settings live in the corner, out of the way of the folders and the tiles. -->
   <button class="gearfab" aria-label="Settings" title="Settings" aria-expanded={sheet} onclick={() => (sheet = !sheet)}>
     <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d={icons.settings} /></svg>
@@ -1065,7 +1081,7 @@
   {#if help}<KeysHelp vim={prefs.vim} onclose={() => (help = false)} />{/if}
   {#if spot !== null}<Spotlight bind:this={spotRef} initial={spot} from={spotFrom} dial={everything} dialId={dial.id} onfolder={openFolder} onclose={() => (spot = null)} />{/if}
   {#if pickEngine}<EnginePicker onclose={() => (pickEngine = false)} />{/if}
-  {#if sheet}<SettingsSheet {dark} oncaptureall={captureAll} {folderLabel} {daily} onrefreshdaily={() => loadDaily(true)} onclose={() => (sheet = false)} onpickfolder={() => (pickFolder = true)} onpickengine={() => (pickEngine = true)} onwallpaper={setWallpaper} />{/if}
+  {#if sheet}<SettingsSheet {dark} oncaptureall={captureAll} {folderLabel} {daily} onrefreshdaily={() => loadDaily(true)} onclose={() => (sheet = false)} onpickfolder={() => (pickFolder = true)} onpickengine={() => (pickEngine = true)} onwallpaper={setWallpaper} onwelcome={() => { sheet = false; welcome = true; }} />{/if}
 </div>
 
 <style>
