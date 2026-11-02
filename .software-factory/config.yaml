@@ -4,31 +4,31 @@
 version: 2
 
 tracker:
-  kind: local             # moves to github (openmarks/openmarks) once the org exists
-  host: ""
-  project: ""
-  cli: none
-  signed_in: n/a
-  local_dir: .software-factory/issues
-  notes: ""
+  kind: github
+  host: github.com
+  project: openmarks/openmarks
+  cli: gh
+  signed_in: yes          # gh as rishabh0111, an owner of the openmarks org
+  local_dir: ""
+  notes: "questions and ideas go to GitHub Discussions; issues are for bugs and accepted work"
   labels: {}
 
 code:
   default_branch: main
-  branch_protected: pending
+  branch_protected: yes   # ruleset "main": pull request + the "checks" CI job, no force-push or deletion
   longpaths: n/a
-  ci: pending             # Bet A criterion 9 adds GitHub Actions CI
-  ci_files: []
-  dependency_bot: pending # Renovate GitHub app once on GitHub
+  ci: github-actions
+  ci_files: [.github/workflows/ci.yml, .github/workflows/release.yml, .github/workflows/daily.yml]
+  dependency_bot: dependabot # .github/dependabot.yml, grouped monthly
 
-commands:                 # the repo is empty; Bet A's first ticket scaffolds these, then re-run sf-setup
-  install: unknown
-  build: unknown
-  test: unknown
-  lint: unknown
-  typecheck: unknown
+commands:
+  install: pnpm install --frozen-lockfile
+  build: pnpm --filter @openmarks/extension build -b firefox   # leave out -b firefox for Chrome
+  test: pnpm test
+  lint: pnpm exec web-ext lint -s apps/extension/.output/firefox-mv3
+  typecheck: pnpm typecheck
   run: unknown
-  deploy: none            # an extension; store releases go through a gated release workflow (Bet A criterion 10)
+  deploy: none            # release-please tags releases; store uploads are manual
   eval: none              # no prompts or models in the product
 
 baseline:
@@ -86,13 +86,7 @@ quality:
   changed_line_coverage: default
 
 pending:
-  - item: tracker
-    finish: owner creates github.com/openmarks, then create repo openmarks/openmarks, push, and re-run sf-setup to switch tracker to github
-  - item: commands + baseline
-    finish: after Bet A's scaffold ticket merges, re-run sf-setup to record pnpm commands and take the baseline
-  - item: code.branch_protected
-    finish: after the push, re-run sf-setup and answer question G
-  - item: code.dependency_bot
-    finish: install the Renovate GitHub app on the openmarks org
+  - item: baseline
+    finish: re-run sf-setup to take the baseline
   - item: tools.browser_mcp
     finish: start Chrome with remote debugging (or switch to Playwright MCP with --isolated), call list_pages once, re-run sf-setup
