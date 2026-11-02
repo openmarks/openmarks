@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Helpers shared by the Dial's components: tabs, folder names, hosts.
 import type { DialFolder, DialItem } from '@openmarks/module-sdk';
-import { browserFavicon } from './bm';
+import { bm, browserFavicon, type Node } from './bm';
 
 export type Tab = { id: string; label: string; items: DialItem[] };
 
@@ -43,4 +43,22 @@ export function folderName(title: string): string {
 export function withFolderNames<T extends { items: DialItem[] }>(d: T): T {
   const fix = (items: DialItem[]): DialItem[] => items.map((i) => (i.kind === 'folder' ? { ...i, title: folderName(i.title), items: fix(i.items) } : i));
   return { ...d, items: fix(d.items) };
+}
+
+export type FolderChoice = { id: string; path: string; count: number; suggested: boolean };
+/** Every bookmarks folder that could be the dial, with its path and how many sites it holds. Ones that look like an
+ *  existing speed dial (a "Speed Dial" folder, Vivaldi/Opera speed dials) and the bookmarks bar come first. */
+export async function folderChoices(): Promise<FolderChoice[]> {
+  const out: FolderChoice[] = [];
+  const walk = (n: Node, path: string, depth: number) => {
+    for (const c of n.children ?? []) {
+      if (c.url !== undefined || c.type === 'separator') continue;
+      const p = path ? `${path} › ${folderName(c.title)}` : folderName(c.title);
+      const count = (c.children ?? []).filter((x) => x.url !== undefined).length;
+      out.push({ id: c.id, path: p, count, suggested: depth > 0 && /speed ?dial|openmarks/i.test(c.title) || /^(bookmarks bar|bookmarks toolbar)$/i.test(c.title) });
+      walk(c, p, depth + 1);
+    }
+  };
+  for (const r of await bm.tree()) walk(r, '', 0);
+  return out.sort((a, b) => Number(b.suggested) - Number(a.suggested));
 }

@@ -2,27 +2,12 @@
 <!-- Choose the Dial folder (first run and Settings). Suggests folders that look like an
      existing speed dial (a "Speed Dial" folder, Vivaldi/Opera speed dials) and the bookmarks bar. -->
 <script lang="ts">
-  import { folderName } from './shared';
   import Modal from './Modal.svelte';
-  import { bm, type Node } from './bm';
+  import { folderChoices, type FolderChoice } from './shared';
   let { current, onpick, onclose }: { current: string | null; onpick: (id: string | null) => void; onclose: () => void } = $props();
 
-  type Row = { id: string; path: string; count: number; suggested: boolean };
-  let rows = $state<Row[]>([]);
-  bm.tree().then((t) => {
-    const out: Row[] = [];
-    const walk = (n: Node, path: string, depth: number) => {
-      for (const c of n.children ?? []) {
-        if (c.url !== undefined || c.type === 'separator') continue;
-        const p = path ? `${path} › ${folderName(c.title)}` : folderName(c.title);
-        const count = (c.children ?? []).filter((x) => x.url !== undefined).length;
-        out.push({ id: c.id, path: p, count, suggested: depth > 0 && /speed ?dial|openmarks/i.test(c.title) || /^(bookmarks bar|bookmarks toolbar)$/i.test(c.title) });
-        walk(c, p, depth + 1);
-      }
-    };
-    for (const r of t) walk(r, '', 0);
-    rows = out.sort((a, b) => Number(b.suggested) - Number(a.suggested));
-  });
+  let rows = $state<FolderChoice[]>([]);
+  folderChoices().then((r) => (rows = r));
 </script>
 
 <Modal title="Choose your Dial folder" {onclose} width={480}>
