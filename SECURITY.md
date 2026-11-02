@@ -2,7 +2,7 @@
 
 Please don't report security problems in public issues or discussions.
 
-Report them privately with the [Report a vulnerability](https://github.com/rishabh0111/openmarks/security/advisories/new)
+Report them privately with the [Report a vulnerability](https://github.com/openmarks/openmarks/security/advisories/new)
 form instead. Only the maintainer can see the report. Say what the problem is, how to reproduce it, and which
 browser and Openmarks version you used.
 

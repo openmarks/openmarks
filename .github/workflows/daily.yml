@@ -28,7 +28,7 @@ jobs:
       - run: node feed/fetch.mjs
         env:
           UNSPLASH_ACCESS_KEY: ${{ secrets.UNSPLASH_ACCESS_KEY }}
-      # The landing page goes at the site root next to daily.json (https://rishabh0111.github.io/openmarks/daily.json).
+      # The landing page goes at the site root next to daily.json (https://openmarks.github.io/openmarks/daily.json).
       - run: cp -r site/. feed/public/
       - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:

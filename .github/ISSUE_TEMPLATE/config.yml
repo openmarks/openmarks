@@ -1,11 +1,11 @@
 blank_issues_enabled: false
 contact_links:
   - name: Suggest an idea
-    url: https://github.com/rishabh0111/openmarks/discussions/categories/ideas
+    url: https://github.com/openmarks/openmarks/discussions/categories/ideas
     about: New features and changes start as a discussion.
   - name: Ask a question
-    url: https://github.com/rishabh0111/openmarks/discussions/categories/q-a
+    url: https://github.com/openmarks/openmarks/discussions/categories/q-a
     about: Help with setting up or using Openmarks.
   - name: Report a security problem
-    url: https://github.com/rishabh0111/openmarks/security/advisories/new
+    url: https://github.com/openmarks/openmarks/security/advisories/new
     about: Privately, so it can be fixed before it's public.
