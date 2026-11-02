@@ -64,7 +64,7 @@ export function previewOf(url: string): string {
   return url;
 }
 
-const FEED = 'https://rishabh0111.github.io/openmarks/daily.json';
+const FEED = 'https://openmarks.github.io/openmarks/daily.json';
 type FeedPhoto = { url: string; author: string; authorUrl: string; photoUrl: string };
 
 async function fetchDaily(p: Provider, step = 0): Promise<Daily> {

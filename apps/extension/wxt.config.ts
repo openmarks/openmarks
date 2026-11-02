@@ -33,6 +33,8 @@ export default defineConfig({
       chrome_settings_overrides: { homepage: 'newtab.html' },
       browser_specific_settings: {
         gecko: {
+          // The add-on's ID on addons.mozilla.org, from before the project moved to the openmarks organisation. Changing
+          // it would make a different add-on, and nobody would get updates.
           id: 'openmarks@rishabh0111.github.io',
           strict_min_version: '140.0',
           data_collection_permissions: { required: ['none'] },

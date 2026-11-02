@@ -408,8 +408,8 @@
       <p>Your favourite sites, one click away on every new tab. Free and open source: no account, no ads, no tracking.</p>
       <div class="links">
         <button class="pill big" onclick={onwelcome}>{@render icon('M3 5h7a2 2 0 0 1 2 2v13a2 2 0 0 0-2-2H3zM21 5h-7a2 2 0 0 0-2 2v13a2 2 0 0 1 2-2h7z')}Welcome guide</button>
-        <a class="pill big" href="https://rishabh0111.github.io/openmarks/" target="_blank" rel="noreferrer">{@render icon('M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18')}Website</a>
-        <a class="pill big" href="https://github.com/rishabh0111/openmarks" target="_blank" rel="noreferrer">{@render icon('M9 19c-4 1.5-4-2-6-2.5M15 21v-3.5c0-1 .1-1.4-.5-2 2.8-.3 5.5-1.4 5.5-6a4.6 4.6 0 0 0-1.3-3.2 4.2 4.2 0 0 0-.1-3.2s-1.1-.3-3.5 1.3a12.3 12.3 0 0 0-6.2 0C6.5 2.8 5.4 3.1 5.4 3.1a4.2 4.2 0 0 0-.1 3.2A4.6 4.6 0 0 0 4 9.5c0 4.6 2.7 5.7 5.5 6-.6.6-.6 1.2-.5 2V21')}Source code</a>
+        <a class="pill big" href="https://openmarks.github.io/openmarks/" target="_blank" rel="noreferrer">{@render icon('M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18')}Website</a>
+        <a class="pill big" href="https://github.com/openmarks/openmarks" target="_blank" rel="noreferrer">{@render icon('M9 19c-4 1.5-4-2-6-2.5M15 21v-3.5c0-1 .1-1.4-.5-2 2.8-.3 5.5-1.4 5.5-6a4.6 4.6 0 0 0-1.3-3.2 4.2 4.2 0 0 0-.1-3.2s-1.1-.3-3.5 1.3a12.3 12.3 0 0 0-6.2 0C6.5 2.8 5.4 3.1 5.4 3.1a4.2 4.2 0 0 0-.1 3.2A4.6 4.6 0 0 0 4 9.5c0 4.6 2.7 5.7 5.5 6-.6.6-.6 1.2-.5 2V21')}Source code</a>
       </div>
     </section>
   {/if}
