@@ -1,0 +1,13 @@
+{
+  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+  "bootstrap-sha": "b0afa598090d35a5f42e0de561e9d9f0c6841969",
+  "include-component-in-tag": false,
+  "packages": {
+    ".": {
+      "release-type": "node",
+      "package-name": "openmarks",
+      "exclude-paths": ["site", "feed", ".github", ".software-factory"],
+      "extra-files": [{ "type": "json", "path": "apps/extension/package.json", "jsonpath": "$.version" }]
+    }
+  }
+}
