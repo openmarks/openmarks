@@ -2,11 +2,9 @@
 
 # Openmarks
 
-Openmarks is available for **Firefox** and **Chrome**.
+<a href="https://addons.mozilla.org/firefox/addon/openmarks/"><img src="https://blog.mozilla.org/addons/files/2020/04/get-the-addon-fx-apr-2020.svg" alt="Get the add-on for Firefox" height="60"></a>
 
-- Firefox: [Firefox Add-ons](https://addons.mozilla.org/firefox/addon/openmarks/)
-- Chrome: [Chrome Web Store](https://chromewebstore.google.com/) (coming soon)
-- Website: [rishabh0111.github.io/openmarks](https://rishabh0111.github.io/openmarks/)
+Chrome: coming soon to the Chrome Web Store. Website: [openmarks.github.io/openmarks](https://openmarks.github.io/openmarks/)
 
 Openmarks is a free, open-source speed dial for the new tab page. Pick a bookmarks folder and its sites and
 subfolders become tiles and tabs, so your links stay in your browser's bookmarks and sync wherever they already do.
@@ -41,7 +39,7 @@ From the repo root, `pnpm test`, `pnpm lint` and `pnpm typecheck` run the checks
 
 Openmarks is a community project, worked on in spare time. Bug reports and fixes are welcome: start with
 [CONTRIBUTING.md](CONTRIBUTING.md). Questions and ideas go to
-[Discussions](https://github.com/rishabh0111/openmarks/discussions).
+[Discussions](https://github.com/openmarks/openmarks/discussions).
 
 ## License
 

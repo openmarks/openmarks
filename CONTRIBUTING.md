@@ -5,8 +5,8 @@ reply isn't a no.
 
 ## Where things go
 
-- **Questions and ideas** go to [Discussions](https://github.com/rishabh0111/openmarks/discussions).
-- **Bugs** go to [Issues](https://github.com/rishabh0111/openmarks/issues/new/choose), using the bug form.
+- **Questions and ideas** go to [Discussions](https://github.com/openmarks/openmarks/discussions).
+- **Bugs** go to [Issues](https://github.com/openmarks/openmarks/issues/new/choose), using the bug form.
 - **Security problems** are reported privately: see [SECURITY.md](SECURITY.md).
 
 ## Before you write code

@@ -5,7 +5,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thanks for reporting. Please check the [open issues](https://github.com/rishabh0111/openmarks/issues) first, in case it's already there.
+        Thanks for reporting. Please check the [open issues](https://github.com/openmarks/openmarks/issues) first, in case it's already there.
   - type: textarea
     id: what
     attributes:
