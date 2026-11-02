@@ -224,59 +224,7 @@ async function normal(msg: NormalAsk) {
   return { local, entries: msg.db && msg.store ? await readStore(msg.db, msg.store, msg.key) : [] };
 }
 
-// ── Focus the dial on new tabs (Settings › Page, on by default) ───────────────
-// A browser puts a new tab's focus in its address bar, where "/" or typing would land, and nothing a page does, not
-// even loading itself again, takes it back. A tab the extension opens does get the focus. So when you open a new tab
-// (or a new window, or Firefox starts on the dial), as soon as it starts loading the dial a fresh tab with the dial
-// takes its place: same window, position, container and opener, with an empty address bar. As soon as possible, so
-// the swap is barely seen. Done here and not in the page, which Firefox may have loaded ahead of time.
-const NEWTAB = () => browser.runtime.getURL('/newtab.html');
-const opening = new Set<number>(); // new tabs opened in front, waiting for the dial to load
-let ours = 0; // replacement tabs being opened right now (not to be replaced themselves)
-async function focusDial(tabId: number) {
-  opening.delete(tabId);
-  const { 'proto-focusPage': on } = await browser.storage.local.get('proto-focusPage');
-  if (on === false) return;
-  const tab = await browser.tabs.get(tabId).catch(() => undefined);
-  if (!tab?.active) return; // moved on
-  ours++;
-  try {
-    const t = tab as typeof tab & { cookieStoreId?: string; openerTabId?: number };
-    await browser.tabs.create({
-      url: NEWTAB(), windowId: tab.windowId, index: tab.index, active: true,
-      ...(t.openerTabId !== undefined ? { openerTabId: t.openerTabId } : {}),
-      ...(t.cookieStoreId && t.cookieStoreId !== 'firefox-default' ? { cookieStoreId: t.cookieStoreId } : {}),
-    } as Parameters<typeof browser.tabs.create>[0]);
-    await browser.tabs.remove(tabId);
-  } catch {
-    /* the tab went away meanwhile */
-  } finally {
-    ours--;
-  }
-}
-
 export default defineBackground(() => {
-  // A new tab in front: the dial when it already has it (loaded ahead of time), else once it starts loading the dial.
-  // A tab that starts loading something else (a link opened in a new tab) is left alone.
-  const blank = (u: string) => u === 'about:blank' || u === 'about:newtab' || u === 'about:home' || u === 'chrome://newtab/';
-  const watch = (tab: { id?: number; active: boolean; url?: string }) => {
-    if (!tab.active || tab.id === undefined || ours > 0) return;
-    const url = tab.url ?? (tab as { pendingUrl?: string }).pendingUrl ?? '';
-    if (url === NEWTAB()) void focusDial(tab.id);
-    else if (blank(url)) opening.add(tab.id);
-  };
-  browser.tabs.onCreated.addListener(watch);
-  browser.tabs.onUpdated.addListener((tabId, info) => {
-    if (!opening.has(tabId) || !info.url) return;
-    if (info.url === NEWTAB()) void focusDial(tabId);
-    else if (!blank(info.url)) opening.delete(tabId); // went to a site instead
-  });
-  browser.tabs.onRemoved.addListener((tabId) => opening.delete(tabId));
-  // Firefox starting on the dial (it's the homepage): that tab was opened before this script ran.
-  browser.runtime.onStartup.addListener(() => {
-    void browser.tabs.query({ active: true }).then((tabs) => tabs.forEach(watch));
-  });
-
   browser.tabs.onUpdated.addListener(async (tabId, info, tab) => {
     if (info.status !== 'complete' || !tab.active || !tab.url || !/^https?:/.test(tab.url)) return;
     if (!(await wanted(tab.url))) return;
@@ -304,7 +252,8 @@ export default defineBackground(() => {
     }
   });
 
-  browser.runtime.onInstalled.addListener(() => rebuildMenus(0));
+  // 1.1.0 kept a "focus the dial on new tabs" switch here; that feature is gone.
+  browser.runtime.onInstalled.addListener(() => { rebuildMenus(0); void browser.storage.local.remove('proto-focusPage'); });
   browser.runtime.onStartup.addListener(() => rebuildMenus(0));
   for (const e of [browser.bookmarks.onCreated, browser.bookmarks.onRemoved, browser.bookmarks.onChanged, browser.bookmarks.onMoved]) e.addListener(() => rebuildMenus());
   browser.storage.onChanged.addListener((c) => { if ('proto-dialFolder' in c) rebuildMenus(); });

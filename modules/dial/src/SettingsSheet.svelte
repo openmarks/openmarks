@@ -369,11 +369,11 @@
           <input type="checkbox" role="switch" bind:checked={prefs.suggest} disabled={!engine.suggest} />
         </label>
       {/if}
-      {#each [['addButton', 'Add button', 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 8v8M8 12h8'], ['clock', 'Clock', 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 7v5l3 2'], ['focusPage', 'Focus the dial on new tabs', 'M5 4h14a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1zM8 9v6M8 9h3'], ['vim', 'Vim keys  h j k l', 'M3 6h18v12H3zM7 10h.01M11 10h.01M15 10h.01M7 14h10']] as [k, label, d]}
+      {#each [['addButton', 'Add button', 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 8v8M8 12h8'], ['clock', 'Clock', 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 7v5l3 2'], ['vim', 'Vim keys  h j k l', 'M3 6h18v12H3zM7 10h.01M11 10h.01M15 10h.01M7 14h10']] as [k, label, d]}
         <label class="li">
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path {d} /></svg>
           <span>{label}</span>
-          <input type="checkbox" role="switch" bind:checked={prefs[k as 'addButton' | 'clock' | 'focusPage' | 'vim']} />
+          <input type="checkbox" role="switch" bind:checked={prefs[k as 'addButton' | 'clock' | 'vim']} />
         </label>
       {/each}
       <button class="li" onclick={onpickfolder}>
