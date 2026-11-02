@@ -410,9 +410,10 @@
   .tabs button:active { background: var(--tint-press); }
   .tabs button.on { color: var(--t); font-weight: 600; background: var(--s); border-color: var(--l); }
   .tabs button.on svg { color: var(--ring); }
-  /* As tall as its settings (at least as tall as most tabs, so switching tabs doesn't move the sheet's top edge). */
+  /* One height for every tab, so switching tabs never moves the sheet's top edge; a tab with more scrolls. It gives
+     way (flex-shrink) when the window is too short for it. */
   /* The page: one surface, its groups parted by thin lines (cards on it would compete with the tab). */
-  .panel { margin: 0 20px 20px; padding: 6px 18px 16px; min-height: 340px; overflow-y: auto; box-sizing: border-box; display: flex; flex-direction: column; gap: 0;
+  .panel { margin: 0 20px 20px; padding: 6px 18px 16px; height: 420px; min-height: 0; flex: 0 1 auto; overflow-y: auto; box-sizing: border-box; display: flex; flex-direction: column; gap: 0;
     background: var(--s); border: 1px solid var(--l); border-radius: 12px; }
   .panel.first { border-top-left-radius: 0; }
   .panel.last { border-top-right-radius: 0; }
@@ -560,7 +561,7 @@
     .sheet { width: 100vw; border-radius: 14px 14px 0 0; padding-bottom: env(safe-area-inset-bottom); }
     .tabs { margin: 4px 12px 0; }
     .tabs button { flex-direction: column; gap: 4px; padding: 8px 4px 9px; font-size: 12px; }
-    .panel { min-height: 0; max-height: 64vh; margin: 0 12px 12px; padding: 4px 14px 14px; }
+    .panel { height: 64vh; margin: 0 12px 12px; padding: 4px 14px 14px; }
     .five { grid-template-columns: repeat(3, 1fr); }
     .four { grid-template-columns: repeat(2, 1fr); }
 
@@ -569,5 +570,5 @@
     .themes { grid-template-columns: repeat(2, 1fr); }
     .themerow { flex-wrap: wrap; }
   }
-  @media (min-width: 600px) and (max-width: 799px) { .panel { min-height: 0; max-height: 60vh; } }
+  @media (min-width: 600px) and (max-width: 799px) { .panel { height: min(420px, 60vh); } }
 </style>
