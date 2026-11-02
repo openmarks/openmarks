@@ -73,11 +73,11 @@
   const searching = $derived(spot !== null);
   // The panel grows out of the search bar or button (and goes back into it when it closes).
   let barEl = $state<HTMLElement>(), searchBtn = $state<HTMLElement>(), spotRef = $state<{ close(): void }>();
-  let spotFrom = $state<{ rect: DOMRect; kind: 'bar' | 'icon' }>();
+  let spotFrom = $state<{ el: HTMLElement; kind: 'bar' | 'icon' }>();
   function openSearch(text = '') {
     if (prefs.searchStyle === 'off' || spot !== null) return;
     const el = prefs.searchStyle === 'bar' ? barEl : searchBtn;
-    spotFrom = el ? { rect: el.getBoundingClientRect(), kind: prefs.searchStyle === 'bar' ? 'bar' : 'icon' } : undefined;
+    spotFrom = el ? { el, kind: prefs.searchStyle === 'bar' ? 'bar' : 'icon' } : undefined;
     spot = text;
   }
   let pickEngine = $state(false);
