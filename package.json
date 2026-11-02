@@ -15,8 +15,8 @@
     "typecheck": "turbo run typecheck"
   },
   "devDependencies": {
-    "turbo": "2.11.8",
-    "typescript": "5.9.3",
+    "turbo": "2.11.10",
+    "typescript": "7.0.2",
     "web-ext": "10.8.0"
   }
 }
