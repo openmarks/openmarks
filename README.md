@@ -4,7 +4,7 @@
 
 <a href="https://addons.mozilla.org/firefox/addon/openmarks/"><img src="https://blog.mozilla.org/addons/files/2020/04/get-the-addon-fx-apr-2020.svg" alt="Get the add-on for Firefox" height="60"></a>
 
-Chrome: coming soon to the Chrome Web Store. Website: [openmarks.github.io/openmarks](https://openmarks.github.io/openmarks/)
+Chrome: coming soon to the Chrome Web Store. Website: [openmarks.github.io](https://openmarks.github.io/)
 
 Openmarks is a free, open-source speed dial for the new tab page. Pick a bookmarks folder and its sites and
 subfolders become tiles and tabs, so your links stay in your browser's bookmarks and sync wherever they already do.

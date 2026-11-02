@@ -47,6 +47,6 @@ export default defineConfig({
     sourcesTemplate: 'openmarks-{{version}}-sources.zip',
     sourcesRoot: '../..',
     includeSources: ['**/*', '.npmrc', '.nvmrc'],
-    excludeSources: ['.*/**', '**/.*/**', '**/.env*', '**/node_modules/**', 'tools/**', 'site/**', '**/test-results/**'],
+    excludeSources: ['.*/**', '**/.*/**', '**/.env*', '**/node_modules/**', 'tools/**', '**/test-results/**'],
   },
 });

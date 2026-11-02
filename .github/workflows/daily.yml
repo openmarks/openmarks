@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths: ['site/**']
+    paths: ['feed/**']
 
 permissions:
   contents: read
@@ -28,8 +28,9 @@ jobs:
       - run: node feed/fetch.mjs
         env:
           UNSPLASH_ACCESS_KEY: ${{ secrets.UNSPLASH_ACCESS_KEY }}
-      # The landing page goes at the site root next to daily.json (https://openmarks.github.io/openmarks/daily.json).
-      - run: cp -r site/. feed/public/
+      # The feed is served at https://openmarks.github.io/openmarks/daily.json. The website is its own repository
+      # (openmarks/openmarks.github.io); the pages it had here send visitors there.
+      - run: cp -r feed/redirect/. feed/public/
       - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
           path: feed/public
