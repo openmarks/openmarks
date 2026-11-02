@@ -10,7 +10,8 @@
     "typecheck": "svelte-check"
   },
   "dependencies": {
-    "@openmarks/module-sdk": "workspace:*"
+    "@openmarks/module-sdk": "workspace:*",
+    "yaml": "2.9.1"
   },
   "peerDependencies": {
     "svelte": "^5.57.2"

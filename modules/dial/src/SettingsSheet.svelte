@@ -1,13 +1,15 @@
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
 <!-- Settings sheet from the bottom, shown with pictures. The Vivaldi set: theme (or your own, from a CSS file), tile
      size incl. icon mode, titles (show / hover / hide), max columns, search, add button, clock, dial folder; wallpaper as
-     colour, gradient (2–4 native-picker colours + angle), your picture, or a daily picture (Bing, Wikimedia, Unsplash). -->
+     colour, gradient (2–4 native-picker colours + angle), your picture, or a daily picture (Bing, Wikimedia, Unsplash).
+     About: the version, the website and source, and your settings as a YAML file to export and import. -->
 <script lang="ts">
   import { prefs, savePrefs, type TileSize, type Provider, type Wallpaper } from './prefs.svelte';
   import { providers, dailyWallpaper, loadWallpaper, previewOf, type Daily } from './wallpaper';
   import { builtIn, themeVars, isDark, themeById, themeToCss, type Theme } from './themes';
   import { ownThemes, addOwnTheme, removeOwnTheme, ownThemeFile } from './ownthemes.svelte';
   import { engineById } from './search';
+  import { exportSettings, importSettings } from './settingsfile';
   import EngineIcon from './EngineIcon.svelte';
   let { dark, folderLabel, daily, onclose, onpickfolder, onpickengine, onwallpaper, onrefreshdaily, oncaptureall }: {
     dark: boolean; folderLabel: string; daily: Daily | null; oncaptureall: () => Promise<number>;
@@ -39,13 +41,16 @@
     cssError = '';
     prefs.themeId = t.id;
   }
-  function downloadCss(t: Theme) {
-    const own = ownThemeFile(t.id);
+  function download(name: string, blob: Blob) {
     const a = document.createElement('a');
-    a.href = URL.createObjectURL(new Blob([own?.css ?? themeToCss(t)], { type: 'text/css' }));
-    a.download = own?.file ?? `${t.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.css`;
+    a.href = URL.createObjectURL(blob);
+    a.download = name;
     a.click();
     setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  }
+  function downloadCss(t: Theme) {
+    const own = ownThemeFile(t.id);
+    download(own?.file ?? `${t.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.css`, new Blob([own?.css ?? themeToCss(t)], { type: 'text/css' }));
   }
   function removeTheme(t: Theme) {
     if (prefs.themeId === t.id) prefs.themeId = 'openmarks';
@@ -53,7 +58,7 @@
   }
   let capturing = $state(false);
   let captured = $state<number | null>(null);
-  let tab = $state<'theme' | 'look' | 'wallpaper' | 'page'>('theme');
+  let tab = $state<'theme' | 'look' | 'wallpaper' | 'page' | 'about'>('theme');
   const modeDark = $derived(prefs.theme === 'auto' ? matchMedia('(prefers-color-scheme: dark)').matches : prefs.theme === 'dark');
 
   const sizes: { k: TileSize; label: string }[] = [
@@ -88,6 +93,29 @@
   const recolor = (i: number, c: string) => setPaint(paint.colors.map((x, j) => (j === i ? c : x)));
   const addColor = () => setPaint([...paint.colors, ['#f5a524', '#e8453c', '#0b57d0', '#0f9d58', '#8f94fb'].find((c) => !paint.colors.includes(c)) ?? '#ffffff']);
   const removeColor = (i: number) => setPaint(paint.colors.filter((_, j) => j !== i));
+
+  // About: the version, and your settings as a YAML file.
+  type Rt = { runtime?: { getManifest?(): { version: string } } };
+  const g = globalThis as { browser?: Rt; chrome?: Rt };
+  const version = (g.browser ?? g.chrome)?.runtime?.getManifest?.().version ?? '';
+  let yamlFile = $state<HTMLInputElement>();
+  let fileNote = $state<{ ok: boolean; message: string } | null>(null);
+  async function exportYaml() {
+    const { name, text } = await exportSettings(version);
+    download(name, new Blob([text], { type: 'application/yaml' }));
+    fileNote = { ok: true, message: `Saved ${name}.` };
+  }
+  async function importYaml() {
+    const f = yamlFile?.files?.[0];
+    if (yamlFile) yamlFile.value = '';
+    if (!f) return;
+    fileNote = f.size > 2 * 1024 * 1024 ? { ok: false, message: 'That file is over 2 MB.' } : await importSettings(await f.text());
+    // The wallpaper tab keeps its own copy of the colours and source in use: take the imported ones.
+    const w = prefs.wallpaper;
+    if (w.kind === 'color') paint = { colors: [w.color], angle: paint.angle };
+    if (w.kind === 'gradient') paint = { colors: [...w.colors], angle: w.angle };
+    if (w.kind === 'daily') lastProvider = w.provider;
+  }
 </script>
 
 <!-- Esc closes the sheet, unless a dialog opened from it (engine or folder picker) is on top: Esc closes that alone. -->
@@ -96,13 +124,13 @@
 <div class="sheet" class:dark role="dialog" aria-label="Settings">
   <div class="grab" aria-hidden="true"></div>
   <div class="tabs" role="tablist">
-    {#each [['theme', 'Theme', 'M12 3l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.4 6.8 19.1l1-5.8L3.5 9.2l5.9-.9z'], ['look', 'Look', 'M12 3a9 9 0 1 0 0 18 3 3 0 0 0 0-6h-1a2 2 0 0 1 0-4h4a5 5 0 0 0 5-5c0-1.7-3.6-3-8-3zM7.5 10.5h.01M9.5 6.5h.01M14.5 6.5h.01'], ['wallpaper', 'Wallpaper', 'M3 5h18v14H3zM8.5 10a1.5 1.5 0 1 0 0-.01M21 15l-5-5-11 9'], ['page', 'Page', 'M4 6h16M4 12h16M4 18h10']] as [k, label, d]}
+    {#each [['theme', 'Theme', 'M12 3l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.4 6.8 19.1l1-5.8L3.5 9.2l5.9-.9z'], ['look', 'Look', 'M12 3a9 9 0 1 0 0 18 3 3 0 0 0 0-6h-1a2 2 0 0 1 0-4h4a5 5 0 0 0 5-5c0-1.7-3.6-3-8-3zM7.5 10.5h.01M9.5 6.5h.01M14.5 6.5h.01'], ['wallpaper', 'Wallpaper', 'M3 5h18v14H3zM8.5 10a1.5 1.5 0 1 0 0-.01M21 15l-5-5-11 9'], ['page', 'Page', 'M4 6h16M4 12h16M4 18h10'], ['about', 'About', 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 11v5M12 8h.01']] as [k, label, d]}
       <button role="tab" aria-selected={tab === k} class:on={tab === k} onclick={() => (tab = k as typeof tab)}>
         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path {d} /></svg>{label}
       </button>
     {/each}
   </div>
-  <div class="panel" role="tabpanel" class:first={tab === 'theme'} class:last={tab === 'page'}>
+  <div class="panel" role="tabpanel" class:first={tab === 'theme'} class:last={tab === 'about'}>
   {#if tab === 'theme'}
     {@const cur = themeById(prefs.themeId, ownThemes.list)}
     <section>
@@ -336,7 +364,7 @@
       {/if}
     </section>
 
-  {:else}
+  {:else if tab === 'page'}
     <section class="list">
       <div class="li">
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="5" width="4" height="14" rx="1"/><rect x="10" y="5" width="4" height="14" rx="1"/><rect x="17" y="5" width="4" height="14" rx="1"/></svg>
@@ -382,6 +410,46 @@
         <span class="fname">{folderLabel} ›</span>
       </button>
     </section>
+
+  {:else}
+    <section class="about">
+      <svg class="logo" viewBox="0 0 128 128" width="44" height="44" aria-hidden="true">
+        <g fill="#4263EB"><rect width="32" height="32" rx="8"/><rect x="48" width="32" height="32" rx="8"/><rect y="48" width="32" height="32" rx="8"/><rect x="48" y="48" width="32" height="32" rx="8"/><rect y="96" width="32" height="32" rx="8"/><rect x="48" y="96" width="32" height="32" rx="8"/><rect x="96" y="96" width="32" height="32" rx="8"/></g>
+        <path d="M104 0h16a8 8 0 0 1 8 8v72l-16-14-16 14V8a8 8 0 0 1 8-8z" fill="#F59F00"/>
+      </svg>
+      <div>
+        <h2>Openmarks{#if version}<span class="ver">{version}</span>{/if}</h2>
+        <p>A speed dial for the new tab page that keeps your links in your browser bookmarks. Free and open source.</p>
+      </div>
+    </section>
+    <section class="list">
+      {#each [['https://rishabh0111.github.io/openmarks/', 'Website', 'rishabh0111.github.io/openmarks', 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18'], ['https://github.com/rishabh0111/openmarks', 'Source code', 'GitHub', 'M9 19c-4 1.5-4-2-6-2.5M15 21v-3.5c0-1 .1-1.4-.5-2 2.8-.3 5.5-1.4 5.5-6a4.6 4.6 0 0 0-1.3-3.2 4.2 4.2 0 0 0-.1-3.2s-1.1-.3-3.5 1.3a12.3 12.3 0 0 0-6.2 0C6.5 2.8 5.4 3.1 5.4 3.1a4.2 4.2 0 0 0-.1 3.2A4.6 4.6 0 0 0 4 9.5c0 4.6 2.7 5.7 5.5 6-.6.6-.6 1.2-.5 2V21']] as [href, label, where, d] (href)}
+        <a class="li" {href} target="_blank" rel="noreferrer">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path {d} /></svg>
+          <span>{label}</span>
+          <span class="fname wide">{where} ↗</span>
+        </a>
+      {/each}
+    </section>
+    <!-- Your settings as a YAML file: to keep, or to carry to another browser. -->
+    <section class="backup">
+      <div class="shead">
+        <h3>Your settings</h3>
+        <div class="filebtns">
+          <button class="hbtn" onclick={() => yamlFile?.click()}>
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4M7 9l5-5 5 5M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg>
+            Import
+          </button>
+          <button class="hbtn" onclick={exportYaml}>
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v12M7 11l5 5 5-5M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg>
+            Export
+          </button>
+        </div>
+      </div>
+      <p class="hint">Your settings and own themes as a YAML file, to keep or to carry to another browser. The dial folder and your uploaded picture stay out of it.</p>
+      <input bind:this={yamlFile} type="file" accept=".yaml,.yml,application/yaml,text/yaml" hidden onchange={importYaml} />
+      {#if fileNote}<p class="cssnote" class:err={!fileNote.ok} role={fileNote.ok ? 'status' : 'alert'}>{fileNote.message}</p>{/if}
+    </section>
   {/if}
   </div>
 </div>
@@ -400,10 +468,10 @@
   .sheet.dark { --sheet: color-mix(in srgb, var(--surface) 72%, #000); }
   @media (prefers-reduced-motion: reduce) { .sheet { animation: none; } }
   .grab { flex: none; width: 36px; height: 4px; border-radius: 2px; background: var(--l); margin: 0 auto 4px; }
-  /* Four equal tabs across the full width: clear where you are, easy to hit. */
+  /* Five equal tabs across the full width: clear where you are, easy to hit. */
   /* Folder tabs: the open tab is the page's own surface and runs into it with no line between (it covers the page's
      top edge); the others sit back on the sheet. The page squares its top corner under the first or last tab. */
-  .tabs { flex: none; position: relative; z-index: 1; display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px; margin: 6px 20px 0; }
+  .tabs { flex: none; position: relative; z-index: 1; display: grid; grid-template-columns: repeat(5, 1fr); gap: 2px; margin: 6px 20px 0; }
   .tabs button { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 8px 11px; border: 1px solid transparent; border-bottom: 0; border-radius: 10px 10px 0 0; margin-bottom: -1px;
     background: none; color: var(--m); font: inherit; font-size: 13.5px; font-weight: 500; cursor: pointer; transition: background 0.12s, color 0.12s; }
   .tabs button:hover { color: var(--t); background: var(--tint); }
@@ -418,7 +486,7 @@
   .panel.first { border-top-left-radius: 0; }
   .panel.last { border-top-right-radius: 0; }
   .panel section, .themerow { margin: 0; padding: 14px 0; }
-  .panel > section + .themerow, .panel > section + .pair { border-top: 1px solid var(--l); }
+  .panel > section + .themerow, .panel > section + .pair, .panel > section + section { border-top: 1px solid var(--l); }
   .panel h3 { margin: 0 0 10px; }
   .panel .pair { gap: 28px; }
   .panel .shotnote { margin: -6px 0 6px; }
@@ -463,6 +531,13 @@
   .addcss small { font-size: 11px; }
   .cssnote { margin: 8px 2px 0; font-size: 12px; color: var(--m); }
   .cssnote.err { color: var(--danger, #c62f2f); }
+  .about { display: flex; align-items: center; gap: 16px; }
+  .about .logo { flex: none; }
+  .about h2 { margin: 0 0 3px; font-size: 16px; font-weight: 650; }
+  .about .ver { margin-left: 8px; font-size: 12px; font-weight: 500; color: var(--m); font-variant-numeric: tabular-nums; }
+  .about p { margin: 0; color: var(--m); }
+  .backup .hint { margin: 0; }
+  .filebtns { display: flex; gap: 8px; }
   .dpick.dadd { border: 2px dashed var(--l); background: none; color: var(--m); transition: color 0.12s, border-color 0.12s, background 0.12s; }
   .dadd .dload { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: inherit; }
   .dadd .dload span { font-weight: 600; font-size: 12px; }
@@ -542,6 +617,8 @@
   .list { display: flex; flex-direction: column; padding-top: 2px !important; padding-bottom: 2px !important; }
   .li { display: flex; align-items: center; gap: 12px; min-height: 48px; padding: 0 4px; border: 0; border-bottom: 1px solid var(--l); background: none; color: var(--t); font: inherit; font-size: 14px; text-align: left; cursor: pointer; }
   .li:last-child { border-bottom: 0; }
+  a.li { text-decoration: none; }
+  .li .fname.wide { max-width: none; }
   .li > svg { color: var(--m); flex: none; }
   .li > span:first-of-type { flex: 1; }
   .li .stepper { border: 0; padding: 0; gap: 4px; }

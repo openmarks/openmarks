@@ -54,10 +54,57 @@ if (saved.searchStyle === undefined && saved.search !== undefined) saved.searchS
 delete saved.search;
 delete (saved as { focusPage?: boolean }).focusPage; // 1.1.0's "focus the dial on new tabs", since removed
 export const prefs = $state<Prefs>({ ...defaults, ...saved });
-// NASA was removed as a daily source: anyone who had it gets Bing.
-if (prefs.wallpaper.kind === 'daily' && !['bing', 'wikimedia', 'picsum'].includes(prefs.wallpaper.provider)) prefs.wallpaper = { kind: 'daily', provider: 'bing' };
-// The navy theme was renamed to Vapor: map its old saved id (split so the old name stays out of searches).
-if ((prefs.themeId as string) === 'st' + 'eam') prefs.themeId = 'vapor';
+function migrate() {
+  // NASA was removed as a daily source: anyone who had it gets Bing.
+  if (prefs.wallpaper.kind === 'daily' && !['bing', 'wikimedia', 'picsum'].includes(prefs.wallpaper.provider)) prefs.wallpaper = { kind: 'daily', provider: 'bing' };
+  // The navy theme was renamed to Vapor: map its old saved id (split so the old name stays out of searches).
+  if ((prefs.themeId as string) === 'st' + 'eam') prefs.themeId = 'vapor';
+}
+migrate();
+
+/** The settings a settings file carries: all but the dial folder, a bookmark id that means nothing in another browser. */
+export const portablePrefs = (): Partial<Prefs> => {
+  const { dialFolder: _, ...rest } = $state.snapshot(prefs);
+  return rest;
+};
+
+// The values each choice can take, so a hand-edited or foreign file can't put the page in a state it can't show.
+const choices: Partial<Record<keyof Prefs, readonly unknown[]>> = {
+  theme: ['auto', 'light', 'dark'], tileSize: ['icon', 'S', 'M', 'L', 'XL'], pictures: ['cover', 'logo', 'shot'],
+  titles: ['show', 'hover', 'hide'], searchStyle: ['off', 'icon', 'bar'],
+};
+const isStr = (v: unknown): v is string => typeof v === 'string';
+function validWallpaper(w: unknown): w is Wallpaper {
+  const x = w as Record<string, unknown> | null;
+  if (!x || typeof x !== 'object') return false;
+  if (x.kind === 'none' || x.kind === 'image') return true;
+  if (x.kind === 'color') return isStr(x.color);
+  if (x.kind === 'gradient') return Array.isArray(x.colors) && x.colors.length >= 2 && x.colors.length <= 4 && x.colors.every(isStr) && typeof x.angle === 'number';
+  return x.kind === 'daily' && isStr(x.provider);
+}
+const validEngine = (e: unknown): e is CustomEngine => {
+  const x = e as Record<string, unknown> | null;
+  return !!x && isStr(x.id) && isStr(x.name) && isStr(x.url) && (x.suggest === undefined || isStr(x.suggest));
+};
+
+/** Takes the settings from a settings file: each one that's known and valid replaces yours, the rest stay as they are.
+ *  Returns how many were taken. */
+export function applyPrefs(from: Record<string, unknown>): number {
+  let n = 0;
+  for (const k of Object.keys(defaults) as (keyof Prefs)[]) {
+    const v = from[k];
+    if (k === 'dialFolder' || v === undefined) continue;
+    const ok = k === 'wallpaper' ? validWallpaper(v)
+      : k === 'engines' ? Array.isArray(v) && v.every(validEngine)
+      : k === 'maxColumns' ? Number.isInteger(v) && (v as number) >= 0 && (v as number) <= 10
+      : typeof v === typeof defaults[k] && (!choices[k] || choices[k]!.includes(v));
+    if (!ok) continue;
+    (prefs as Record<string, unknown>)[k] = v;
+    n++;
+  }
+  migrate();
+  return n;
+}
 
 /** Bumped when site access changes, so tiles re-read their pictures. */
 export const epoch = $state({ n: 0 });
